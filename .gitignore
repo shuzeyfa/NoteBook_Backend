@@ -12,19 +12,12 @@
 vendor/
 node_modules/
 
-# Go workspace files
-*.mod
-*.sum
-go.sum
-go.mod
-
-# IDE - Specific
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
-.DS_Store
 
 # Environment files
 .env
@@ -32,23 +25,17 @@ go.mod
 .env.*.local
 *.env
 
-# Output of the go coverage tool
-*.out
+# Coverage
 *.cov
 coverage.html
 coverage.txt
 
-# Go workspace file
+# Go workspace
 go.work
 go.work.sum
 
-# OS generated files
+# OS files
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
 # Build artifacts
