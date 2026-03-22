@@ -35,13 +35,11 @@ func (ctr *UserController) LoginUser(c *gin.Context) {
 		return
 	}
 
-	tokenString, err := ctr.Control.LoginUser(req)
+	userCredential, err := ctr.Control.LoginUser(req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"token": tokenString,
-	})
+	c.JSON(http.StatusOK, userCredential)
 }

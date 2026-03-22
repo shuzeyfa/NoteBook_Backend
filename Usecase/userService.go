@@ -13,6 +13,11 @@ type UserUsecase struct {
 	Repo domain.UserRepository
 }
 
+type ReturnType struct {
+	Token string      `json:"token"`
+	User  domain.User `json:"user"`
+}
+
 func (u *UserUsecase) RegisterUser(req domain.RegisterRequest) (domain.User, error) {
 
 	// hash the password
@@ -42,25 +47,28 @@ func (u *UserUsecase) RegisterUser(req domain.RegisterRequest) (domain.User, err
 	return user, nil
 }
 
-func (u *UserUsecase) LoginUser(req domain.LoginRequest) (string, error) {
+func (u *UserUsecase) LoginUser(req domain.LoginRequest) (ReturnType, error) {
 
 	// check if the user not registered
 	user, err := u.Repo.GetUserByEmail(req.Email)
 	if err != nil {
-		return "", errors.New("Invalid credentials")
+		return ReturnType{}, errors.New("Invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword(
 		[]byte(user.Password),
 		[]byte(req.Password),
 	); err != nil {
-		return "", errors.New("invalid credentials")
+		return ReturnType{}, errors.New("invalid credentials")
 	}
 
 	tokenString, err := infrastructure.GenerateJWT(user, req)
 	if err != nil {
-		return "", errors.New(err.Error())
+		return ReturnType{}, errors.New(err.Error())
 	}
 
-	return tokenString, nil
+	return ReturnType{
+		Token: tokenString,
+		User:  user,
+	}, nil
 }
