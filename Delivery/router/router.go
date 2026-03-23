@@ -7,33 +7,41 @@ import (
 	repository "taskmanagement/Repository"
 	usecase "taskmanagement/Usecase"
 
-	"github.com/gin-contrib/cors"
-
 	"github.com/gin-gonic/gin"
 )
 
 func Router() *gin.Engine {
 	infrastructure.ConnectDB()
-	log.Println("App is ready!")
+	log.Println("✅ App is ready!")
 
+	// Note
+	noteRepo := &repository.MongoNoteRepository{
+		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("notes"),
+	}
+	noteUsecase := &usecase.NoteUsecase{Repo: noteRepo}
+	noteController := &controllers.NoteController{Control: noteUsecase}
+
+	// User
 	userRepo := &repository.MongoUserRepository{
-		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("user"),
+		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("users"),
 	}
-
-	UserUsecase := &usecase.UserUsecase{
-		Repo: userRepo,
-	}
-
-	UserController := &controllers.UserController{
-		Control: UserUsecase,
-	}
+	userUsecase := &usecase.UserUsecase{Repo: userRepo}
+	userController := &controllers.UserController{Control: userUsecase}
 
 	r := gin.Default()
 
-	r.Use(cors.Default())
+	r.POST("/register", userController.RegisterHandler)
+	r.POST("/login", userController.LoginUser)
 
-	r.POST("/register", UserController.RegisterHandler)
-	r.POST("/login", UserController.LoginUser)
+	// Protected routes
+	api := r.Group("/")
+	api.Use(infrastructure.AuthMiddleware())
+	{
+		api.GET("/notes", noteController.GetAllNote)
+		api.POST("/notes", noteController.CreateNote)
+		api.PUT("/notes/:id", noteController.UpdateNote)
+		api.DELETE("/notes/:id", noteController.DeleteNote)
+	}
 
 	return r
 }

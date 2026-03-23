@@ -1,28 +1,30 @@
 package domain
 
 import (
+	"time"
+
 	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type Task struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Title       string             `bson:"title" json:"title"`
-	Description string             `bson:"description" json:"description"`
-	DueDate     string             `bson:"due_date" json:"due_date"`
-	Status      string             `bson:"status" json:"status"`
-	UserId      primitive.ObjectID `bson:"user_id,omitempty"`
+type Note struct {
+	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Title     string             `bson:"title" json:"title"`
+	Content   string             `bson:"content" json:"content"`
+	CreatedAt time.Time          `bson:"created_at" json:"createdAt"`
+	UpdatedAt time.Time          `bson:"updated_at" json:"updatedAt"`
+	UserID    primitive.ObjectID `bson:"user_id" json:"-"`
 }
 
 type User struct {
-	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	ID       primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	Email    string             `json:"email" binding:"required,email"`
 	Password string             `json:"password,omitempty" binding:"required,min=8"`
 	Role     string             `json:"role"`
 }
 
 type Claims struct {
-	UserID primitive.ObjectID `bson:"_id,omitempty"`
+	UserID primitive.ObjectID `json:"user_id"`
 	Email  string             `json:"email"`
 	Role   string             `json:"role"`
 	jwt.RegisteredClaims
@@ -36,6 +38,15 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+// Repository
+type NoteRepository interface {
+	GetAllNote(userID primitive.ObjectID) ([]Note, error)
+	GetNoteByID(noteID, userID primitive.ObjectID) (Note, error)
+	CreateNote(note Note, userID primitive.ObjectID) (Note, error)
+	UpdateNote(note Note, userID primitive.ObjectID) (Note, error)
+	DeleteNote(noteID, userID primitive.ObjectID) error
 }
 
 type UserRepository interface {

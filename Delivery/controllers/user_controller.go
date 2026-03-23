@@ -13,16 +13,15 @@ type UserController struct {
 }
 
 func (ctr *UserController) RegisterHandler(c *gin.Context) {
-
 	var req domain.RegisterRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, err := ctr.Control.RegisterUser(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	c.JSON(http.StatusOK, user)
@@ -31,15 +30,15 @@ func (ctr *UserController) RegisterHandler(c *gin.Context) {
 func (ctr *UserController) LoginUser(c *gin.Context) {
 	var req domain.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	userCredential, err := ctr.Control.LoginUser(req)
+	token, err := ctr.Control.LoginUser(req)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, userCredential)
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }

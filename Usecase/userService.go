@@ -4,71 +4,33 @@ import (
 	"errors"
 	domain "taskmanagement/Domain"
 	infrastructure "taskmanagement/Infrastructure"
-
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserUsecase struct {
 	Repo domain.UserRepository
 }
 
-type ReturnType struct {
-	Token string      `json:"token"`
-	User  domain.User `json:"user"`
-}
-
 func (u *UserUsecase) RegisterUser(req domain.RegisterRequest) (domain.User, error) {
+	user := domain.User{
+		Email: req.Email,
+		Role:  "user",
+	}
 
-	// hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword(
-		[]byte(req.Password),
-		12,
-	)
+	hashed, _ := infrastructure.HashPassword(req.Password)
+	user.Password = hashed
+
+	err := u.Repo.CreateUser(user)
 	if err != nil {
 		return domain.User{}, err
 	}
-
-	// check if the user already exist
-	_, err = u.Repo.GetUserByEmail(req.Email)
-	if err == nil {
-		return domain.User{}, errors.New("user already exist")
-	}
-
-	user := domain.User{
-		ID:       primitive.NewObjectID(),
-		Email:    req.Email,
-		Password: string(hashedPassword),
-		Role:     "user",
-	}
-
-	err = u.Repo.CreateUser(user)
-
 	return user, nil
 }
 
-func (u *UserUsecase) LoginUser(req domain.LoginRequest) (ReturnType, error) {
-
-	// check if the user not registered
+func (u *UserUsecase) LoginUser(req domain.LoginRequest) (string, error) {
 	user, err := u.Repo.GetUserByEmail(req.Email)
 	if err != nil {
-		return ReturnType{}, errors.New("Invalid credentials")
+		return "", errors.New("invalid credentials")
 	}
 
-	if err := bcrypt.CompareHashAndPassword(
-		[]byte(user.Password),
-		[]byte(req.Password),
-	); err != nil {
-		return ReturnType{}, errors.New("invalid credentials")
-	}
-
-	tokenString, err := infrastructure.GenerateJWT(user, req)
-	if err != nil {
-		return ReturnType{}, errors.New(err.Error())
-	}
-
-	return ReturnType{
-		Token: tokenString,
-		User:  user,
-	}, nil
+	return infrastructure.GenerateJWT(user, req)
 }
