@@ -23,7 +23,7 @@ func Router() *gin.Engine {
 
 	// User
 	userRepo := &repository.MongoUserRepository{
-		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("users"),
+		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("user"),
 	}
 	userUsecase := &usecase.UserUsecase{Repo: userRepo}
 	userController := &controllers.UserController{Control: userUsecase}
