@@ -53,3 +53,12 @@ type UserRepository interface {
 	CreateUser(user User) error
 	GetUserByEmail(email string) (User, error)
 }
+
+// AI related types
+type GenerateAIRequest struct {
+	Message string `json:"message" binding:"required"`
+}
+
+type GenerateAIResponse struct {
+	Response string `json:"response"`
+}

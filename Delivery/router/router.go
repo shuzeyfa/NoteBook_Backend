@@ -28,6 +28,9 @@ func Router() *gin.Engine {
 	userUsecase := &usecase.UserUsecase{Repo: userRepo}
 	userController := &controllers.UserController{Control: userUsecase}
 
+	aiUsecase := &usecase.AIUsecase{Repo: noteRepo}
+	aiController := &controllers.AIController{Control: aiUsecase}
+
 	r := gin.Default()
 
 	// ================ CORS CONFIGURATION ================
@@ -55,6 +58,7 @@ func Router() *gin.Engine {
 		api.POST("/notes", noteController.CreateNote)
 		api.PUT("/notes/:id", noteController.UpdateNote)
 		api.DELETE("/notes/:id", noteController.DeleteNote)
+		api.POST("/notes/:id/ai", aiController.GenerateAI)
 	}
 
 	return r
