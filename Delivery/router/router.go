@@ -34,25 +34,33 @@ func Router() *gin.Engine {
 	r := gin.Default()
 
 	// ================ CORS CONFIGURATION ================
+	// r.Use(cors.New(cors.Config{
+	// 	AllowOrigins: []string{
+	// 		"http://localhost:3000",            // local dev
+	// 		"https://yournotetaker.vercel.app", // your production URL
+	// 		"https://*.vercel.app",             // all Vercel previews (very important)
+	// 	},
+	// 	AllowMethods: []string{
+	// 		"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH",
+	// 	},
+	// 	AllowHeaders: []string{
+	// 		"Origin",
+	// 		"Content-Type",
+	// 		"Authorization",
+	// 		"Accept",
+	// 		"X-Requested-With",
+	// 	},
+	// 	ExposeHeaders:    []string{"Content-Length"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * 60 * 60, // 12 hours
+	// }))
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"http://localhost:3000",            // local dev
-			"https://yournotetaker.vercel.app", // your production URL
-			"https://*.vercel.app",             // all Vercel previews (very important)
-		},
-		AllowMethods: []string{
-			"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH",
-		},
-		AllowHeaders: []string{
-			"Origin",
-			"Content-Type",
-			"Authorization",
-			"Accept",
-			"X-Requested-With",
-		},
+		AllowOrigins:     []string{"*"}, // ← allows everything
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "Accept"},
 		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * 60 * 60, // 12 hours
+		AllowCredentials: false, // ← MUST be false (you use Bearer token, not cookies)
+		MaxAge:           12 * 60 * 60,
 	}))
 
 	// Auth routes (public)
