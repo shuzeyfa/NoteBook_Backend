@@ -7,6 +7,7 @@ import (
 	repository "taskmanagement/Repository"
 	usecase "taskmanagement/Usecase"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,22 +15,35 @@ func Router() *gin.Engine {
 	infrastructure.ConnectDB()
 	log.Println("✅ App is ready!")
 
-	// Note
+	// Repositories & Usecases (keep exactly as before)
 	noteRepo := &repository.MongoNoteRepository{
 		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("notes"),
 	}
 	noteUsecase := &usecase.NoteUsecase{Repo: noteRepo}
 	noteController := &controllers.NoteController{Control: noteUsecase}
 
-	// User
 	userRepo := &repository.MongoUserRepository{
-		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("user"),
+		Collection: infrastructure.Client.Database(infrastructure.DBName).Collection("users"),
 	}
 	userUsecase := &usecase.UserUsecase{Repo: userRepo}
 	userController := &controllers.UserController{Control: userUsecase}
 
 	r := gin.Default()
 
+	// ================ CORS CONFIGURATION ================
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{
+			"http://localhost:3000",
+			"https://yournotetaker.vercel.app",
+		},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * 60 * 60,
+	}))
+
+	// Auth routes (public)
 	r.POST("/register", userController.RegisterHandler)
 	r.POST("/login", userController.LoginUser)
 
