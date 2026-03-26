@@ -51,10 +51,12 @@ func (r *MongoNoteRepository) CreateNote(note domain.Note, userID primitive.Obje
 	note.CreatedAt = time.Now()
 	note.UpdatedAt = time.Now()
 
-	_, err := r.Collection.InsertOne(context.Background(), note)
+	result, err := r.Collection.InsertOne(context.Background(), note)
 	if err != nil {
 		return domain.Note{}, err
 	}
+
+	note.ID = result.InsertedID.(primitive.ObjectID)
 	return note, nil
 }
 
