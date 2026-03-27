@@ -45,7 +45,7 @@ func (u *AIUsecase) callOpenAI(prompt string) (string, error) {
 	}
 
 	reqBody := map[string]any{
-		"model": "gpt-5-mini",
+		"model": "gpt-4o-mini",
 		"messages": []map[string]string{
 			{"role": "system", "content": "You are a helpful assistant specialized in note-taking, summarizing, explaining, and expanding ideas."},
 			{"role": "user", "content": prompt},
