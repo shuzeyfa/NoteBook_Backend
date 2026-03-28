@@ -11,18 +11,15 @@ import (
 )
 
 func GenerateJWT(user domain.User, req domain.LoginRequest) (string, error) {
-
-	if err := bcrypt.CompareHashAndPassword(
-		[]byte(user.Password),
-		[]byte(req.Password),
-	); err != nil {
+	// Password verification first
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		return "", errors.New("invalid credentials")
 	}
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &domain.Claims{
-		UserID: user.ID.Hex(),
+		UserID: user.ID.Hex(), // IMPORTANT: use Hex string form for JWT!
 		Email:  user.Email,
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
