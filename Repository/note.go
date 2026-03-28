@@ -62,13 +62,17 @@ func (r *MongoNoteRepository) CreateNote(note domain.Note, userID primitive.Obje
 
 func (r *MongoNoteRepository) UpdateNote(note domain.Note, userID primitive.ObjectID) (domain.Note, error) {
 	note.UpdatedAt = time.Now()
-
 	filter := bson.M{"_id": note.ID, "user_id": userID}
-	_, err := r.Collection.UpdateOne(context.Background(), filter, bson.M{"$set": note})
+	updateFields := bson.M{
+		"title":      note.Title,
+		"content":    note.Content,
+		"updated_at": note.UpdatedAt,
+		// NEVER set "user_id"
+	}
+	_, err := r.Collection.UpdateOne(context.Background(), filter, bson.M{"$set": updateFields})
 	if err != nil {
 		return domain.Note{}, err
 	}
-
 	return r.GetNoteByID(note.ID, userID)
 }
 
