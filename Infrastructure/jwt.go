@@ -22,7 +22,7 @@ func GenerateJWT(user domain.User, req domain.LoginRequest) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &domain.Claims{
-		UserID: user.ID,
+		UserID: user.ID.Hex(),
 		Email:  user.Email,
 		Role:   user.Role,
 		RegisteredClaims: jwt.RegisteredClaims{
