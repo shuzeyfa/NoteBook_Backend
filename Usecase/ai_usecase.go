@@ -35,23 +35,29 @@ User request: %s
 
 Answer clearly, use markdown when helpful, keep it concise and useful.`, note.Title, note.Content, message)
 
-	return u.callOpenAI(prompt)
+	return u.callGrok(prompt)
 }
 
-func (u *AIUsecase) callOpenAI(prompt string) (string, error) {
-	key := os.Getenv("OPENAI_API_KEY")
+func (u *AIUsecase) callGrok(prompt string) (string, error) {
+	key := os.Getenv("GROK_API_KEY")
 	if key == "" {
-		return "", errors.New("OpenAI API key is not configured")
+		return "", errors.New("Grok API key is not configured. Please set GROK_API_KEY in .env")
 	}
 
 	reqBody := map[string]any{
-		"model": "gpt-4o-mini",
+		"model": "grok-4", // ← Current best Grok model (March 2026)
 		"messages": []map[string]string{
-			{"role": "system", "content": "You are a helpful assistant specialized in note-taking, summarizing, explaining, and expanding ideas."},
-			{"role": "user", "content": prompt},
+			{
+				"role":    "system",
+				"content": "You are a helpful, witty, and concise AI assistant specialized in note-taking, summarizing, explaining, and expanding ideas.",
+			},
+			{
+				"role":    "user",
+				"content": prompt,
+			},
 		},
 		"temperature": 0.7,
-		"max_tokens":  1000,
+		"max_tokens":  1200,
 	}
 
 	jsonData, err := json.Marshal(reqBody)
@@ -59,10 +65,11 @@ func (u *AIUsecase) callOpenAI(prompt string) (string, error) {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", "https://api.openai.com/v1/chat/completions", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "https://api.x.ai/v1/chat/completions", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", err
 	}
+
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+key)
 
@@ -75,10 +82,10 @@ func (u *AIUsecase) callOpenAI(prompt string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("OpenAI error (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("Grok API error (%d): %s", resp.StatusCode, string(body))
 	}
 
-	var openaiResp struct {
+	var grokResp struct {
 		Choices []struct {
 			Message struct {
 				Content string `json:"content"`
@@ -86,13 +93,13 @@ func (u *AIUsecase) callOpenAI(prompt string) (string, error) {
 		} `json:"choices"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&openaiResp); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&grokResp); err != nil {
 		return "", err
 	}
 
-	if len(openaiResp.Choices) == 0 || openaiResp.Choices[0].Message.Content == "" {
-		return "", errors.New("no response from OpenAI")
+	if len(grokResp.Choices) == 0 || grokResp.Choices[0].Message.Content == "" {
+		return "", errors.New("no response from Grok")
 	}
 
-	return openaiResp.Choices[0].Message.Content, nil
+	return grokResp.Choices[0].Message.Content, nil
 }
