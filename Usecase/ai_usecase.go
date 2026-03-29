@@ -18,38 +18,40 @@ type AIUsecase struct {
 	Repo domain.NoteRepository
 }
 
+// GenerateResponse is called from controller
 func (u *AIUsecase) GenerateResponse(noteID, userID primitive.ObjectID, message string) (string, error) {
 	note, err := u.Repo.GetNoteByID(noteID, userID)
 	if err != nil {
 		return "", err
 	}
 
-	prompt := fmt.Sprintf(`You are a helpful AI assistant for the Notebook app.
+	prompt := fmt.Sprintf(`You are a helpful AI assistant inside a Notebook app.
 
 Current note title: "%s"
 
 Full note content:
 %s
 
-User request: %s
+User's request: %s
 
-Answer clearly, use markdown when helpful, keep it concise and useful.`, note.Title, note.Content, message)
+Answer in a clear, friendly and useful way. Use markdown when helpful. Keep responses concise but complete.`,
+		note.Title, note.Content, message)
 
-	return u.callGrok(prompt)
+	return u.callGroq(prompt)
 }
 
-func (u *AIUsecase) callGrok(prompt string) (string, error) {
-	key := os.Getenv("GROK_API_KEY")
+func (u *AIUsecase) callGroq(prompt string) (string, error) {
+	key := os.Getenv("GROQ_API_KEY")
 	if key == "" {
-		return "", errors.New("Grok API key is not configured. Please set GROK_API_KEY in .env")
+		return "", errors.New("GROQ_API_KEY is not set in .env file")
 	}
 
 	reqBody := map[string]any{
-		"model": "grok-4", // ← Current best Grok model (March 2026)
+		"model": "llama-3.3-70b-versatile", // Best free model on Groq (very strong)
 		"messages": []map[string]string{
 			{
 				"role":    "system",
-				"content": "You are a helpful, witty, and concise AI assistant specialized in note-taking, summarizing, explaining, and expanding ideas.",
+				"content": "You are a smart, helpful, and concise assistant specialized in note-taking, summarizing, explaining, and expanding ideas.",
 			},
 			{
 				"role":    "user",
@@ -65,7 +67,7 @@ func (u *AIUsecase) callGrok(prompt string) (string, error) {
 		return "", err
 	}
 
-	req, err := http.NewRequest("POST", "https://api.x.ai/v1/chat/completions", bytes.NewBuffer(jsonData))
+	req, err := http.NewRequest("POST", "https://api.groq.com/openai/v1/chat/completions", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", err
 	}
@@ -82,10 +84,10 @@ func (u *AIUsecase) callGrok(prompt string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("Grok API error (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("Groq API Error (%d): %s", resp.StatusCode, string(body))
 	}
 
-	var grokResp struct {
+	var groqResp struct {
 		Choices []struct {
 			Message struct {
 				Content string `json:"content"`
@@ -93,13 +95,13 @@ func (u *AIUsecase) callGrok(prompt string) (string, error) {
 		} `json:"choices"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&grokResp); err != nil {
+	if err := json.NewDecoder(resp.Body).Decode(&groqResp); err != nil {
 		return "", err
 	}
 
-	if len(grokResp.Choices) == 0 || grokResp.Choices[0].Message.Content == "" {
-		return "", errors.New("no response from Grok")
+	if len(groqResp.Choices) == 0 || groqResp.Choices[0].Message.Content == "" {
+		return "", errors.New("no response received from Groq")
 	}
 
-	return grokResp.Choices[0].Message.Content, nil
+	return groqResp.Choices[0].Message.Content, nil
 }
