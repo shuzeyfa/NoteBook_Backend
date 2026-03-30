@@ -36,9 +36,9 @@ func Router() *gin.Engine {
 	// ================ CORS CONFIGURATION ================
 	r.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"http://localhost:3000",            // local dev
-			"https://yournotetaker.vercel.app", // your production URL
-			"https://*.vercel.app",             // all Vercel previews (very important)
+			"http://localhost:3000",              // local dev
+			"https://your-note-taker.vercel.app", // your production URL
+			"https://*.vercel.app",               // all Vercel previews (very important)
 		},
 		AllowMethods: []string{
 			"GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH",
