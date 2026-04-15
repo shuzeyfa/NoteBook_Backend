@@ -44,11 +44,25 @@ USER REQUEST:
 -----------------------------------
 INSTRUCTIONS:
 
-1. Understand the user's intent:
-   - If they ask to summarize → provide a short summary
-   - If they ask to explain → explain clearly with examples
-   - If they ask to expand → add more ideas and details
-   - If unclear → ask a clarifying question
+1. Detect the user's intent:
+
+- If the user asks to SUMMARIZE:
+  • Return ONLY bullet points
+  • Maximum 3–5 bullet points
+  • Each bullet must be short (1 sentence)
+  • Do NOT explain anything
+
+- If the user asks to EXPLAIN:
+  • Give a clear explanation in simple terms
+  • MUST include at least one real-world example
+  • Use short paragraphs or bullet points
+
+- If the user asks to EXPAND:
+  • Add new ideas or deeper details
+  • Include examples if possible
+
+- If the request is unclear:
+  • Ask a clarifying question to better understand the user's intent
 
 2. Response rules:
    - Be clear, concise, and helpful
