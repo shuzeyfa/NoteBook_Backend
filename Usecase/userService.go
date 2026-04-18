@@ -68,5 +68,5 @@ func (u *UserUsecase) GoogleLogin(req domain.GoogleLoginRequest) (string, error)
 	}
 
 	// Generate your JWT exactly like normal login
-	return infrastructure.GenerateJWT(user, domain.LoginRequest{Email: email}) // reuse your existing func
+	return infrastructure.GenerateJWTForAuthenticatedUser(user)
 }
