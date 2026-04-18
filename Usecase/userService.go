@@ -34,3 +34,39 @@ func (u *UserUsecase) LoginUser(req domain.LoginRequest) (string, error) {
 
 	return infrastructure.GenerateJWT(user, req)
 }
+
+// Google signin method
+func (u *UserUsecase) GoogleLogin(req domain.GoogleLoginRequest) (string, error) {
+	payload, err := infrastructure.VerifyGoogleIDToken(req.IDToken)
+	if err != nil {
+		return "", errors.New("invalid google token")
+	}
+
+	email := payload.Claims["email"].(string)
+	googleID := payload.Claims["sub"].(string) // unique Google user ID
+
+	// Try to find existing user by email (most common case)
+	user, err := u.Repo.GetUserByEmail(email)
+	if err != nil {
+		// User doesn't exist → create new Google user
+		newUser := domain.User{
+			Email:    email,
+			Role:     "user",
+			GoogleID: googleID,
+			// Password left empty - they signed up via Google
+		}
+		if err := u.Repo.CreateUser(newUser); err != nil {
+			return "", err
+		}
+		user = newUser // now we have the user
+	} else {
+		// User exists → optional: update GoogleID if it was missing
+		if user.GoogleID == "" {
+			user.GoogleID = googleID
+			// You could call an UpdateUser method here if you have one
+		}
+	}
+
+	// Generate your JWT exactly like normal login
+	return infrastructure.GenerateJWT(user, domain.LoginRequest{Email: email}) // reuse your existing func
+}

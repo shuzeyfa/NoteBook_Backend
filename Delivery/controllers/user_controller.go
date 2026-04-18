@@ -42,3 +42,20 @@ func (ctr *UserController) LoginUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
+
+// google auth handler
+func (ctr *UserController) GoogleLoginHandler(c *gin.Context) {
+	var req domain.GoogleLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	token, err := ctr.Control.GoogleLogin(req)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"token": token})
+}

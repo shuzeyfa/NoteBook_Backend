@@ -56,6 +56,8 @@ func Router() *gin.Engine {
 	}))
 
 	// Auth routes (public)
+
+	r.POST("/auth/google", userController.GoogleLoginHandler)
 	r.POST("/register", userController.RegisterHandler)
 	r.POST("/login", userController.LoginUser)
 

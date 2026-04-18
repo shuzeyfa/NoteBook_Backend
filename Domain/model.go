@@ -21,6 +21,7 @@ type User struct {
 	Email    string             `json:"email" binding:"required,email"`
 	Password string             `json:"password,omitempty" binding:"required,min=8"`
 	Role     string             `json:"role"`
+	GoogleID string             `bson:"google_id,omitempty" json:"-"` // new field for Google OAuth
 }
 
 type Claims struct {
@@ -38,6 +39,10 @@ type RegisterRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
+}
+
+type GoogleLoginRequest struct {
+	IDToken string `json:"id_token" binding:"required"`
 }
 
 // Repository
